@@ -59,7 +59,7 @@ export function Form({ onSubmit, setOrigin, setDestination }: Props) {
       <option value="...">🚲</option>
     </select>
 
-    <button onClick={() => submit()} className="col btn btn-primary">GO</button>
+    <button onClick={() => submit()} className="col btn btn-primary">CLEAR</button>
 
   </div>;
 }
