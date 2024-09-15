@@ -27,22 +27,28 @@ import {
 } from '@reach/combobox';
 import '@reach/combobox/styles.css';
 import { useLoadScript } from '@react-google-maps/api';
+/* import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete'; */
 
 type LatLng = {
   lat: number;
   lng: number;
 };
 type Props = {
-  origin: string,
-  destination: string,
+  origin: LatLng | string,
+  destination: LatLng | string,
   departure_time: string,
   type: string
 }
 
-export function Intro({ origin, destination, departure_time, type }: Props) {
-  const t_origin = origin
-  const t_destination = destination
+/* type PlacesAutoProps = {
+  name: string,
+  placeholder: string,
+  type?: string,
+  className?: string,
+  setSelected?: any
+} */
 
+export function Intro({ origin, destination, departure_time, type }: Props) {
   const position = { lat: 43.64, lng: -79.41 };
   const [selected, setSelected] = useState<LatLng | null>(null);
   const { isLoaded } = useLoadScript({
@@ -51,11 +57,14 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
   });
 
   if (!isLoaded) return <div>Loading ...</div>;
+
+  console.log("IM IN INTROOO")
+
   return (
     <>
-      <div className='places-container'>
+      {/* <div className='places-container'>
         <PlacesAutoComplete setSelected={setSelected} />
-      </div>
+      </div> */}
 
       <div style={{ height: '500px', width: '100%' }}>
         <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
@@ -66,7 +75,7 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
             fullscreenControl={false}
           >
             {selected && <Marker position={selected} />}
-            <Directions />
+            <Directions origin={origin} destination={destination} departure_time={departure_time} type={type} />
           </Map>
         </APIProvider>
       </div>
@@ -74,7 +83,7 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
   );
 }
 
-function Directions() {
+export function Directions({ origin, destination, departure_time, type }: Props) {
   const map = useMap();
   const routesLibrary = useMapsLibrary('routes');
   const [directionsService, setDirectionsService] =
@@ -86,19 +95,23 @@ function Directions() {
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
 
+  console.log("IM IN DIRECTIONSSS", origin, destination)
+
   useEffect(() => {
-    if (!routesLibrary || !map) return;
+    if (!routesLibrary || !map || origin === "" || destination === "") return;
+    directionsRenderer?.setMap(null)
     setDirectionsService(new routesLibrary.DirectionsService());
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
-  }, [routesLibrary, map]);
+    console.log("ROUTES", origin, destination)
+  }, [routesLibrary, map, origin, destination]);
 
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
-
+    console.log("CALC", origin, destination)
     directionsService
       .route({
-        origin: "",
-        destination: "",
+        origin: origin,
+        destination: destination,
         travelMode: google.maps.TravelMode.DRIVING,
         provideRouteAlternatives: true,
       })
@@ -106,7 +119,8 @@ function Directions() {
         // console.log(response);
         directionsRenderer.setDirections(response);
         setRoutes(response.routes);
-      });
+      })
+      .catch(err => console.error(err));
   }, [directionsService, directionsRenderer]);
 
   // console.log(routes);
@@ -142,7 +156,16 @@ function Directions() {
   );
 }
 
-const PlacesAutoComplete = ({ setSelected }: any) => {
+
+
+type P = {
+  setSelected: any,
+  placeholder: string,
+  className: string
+}
+
+// export const PlacesAutoComplete = ({ type, name, placeholder, className, setSelected }: PlacesAutoProps) => {
+export const PlacesAutoComplete = ({ setSelected, placeholder, className }: P) => {
   const {
     ready,
     value,
@@ -151,24 +174,27 @@ const PlacesAutoComplete = ({ setSelected }: any) => {
     clearSuggestions,
   } = usePlacesAutocomplete();
 
+
   // adress to lat and lg
   const handleSelect = async (address: string) => {
     setValue(address, false);
     clearSuggestions();
 
     const results = await getGeocode({ address });
-    const { lat, lng } = await getLatLng(results[0]);
+    const { lat, lng } = getLatLng(results[0]);
     setSelected({ lat, lng });
+    console.log(lat, lng)
+    // setSelected(address);
   };
 
   return (
-    <Combobox onSelect={handleSelect}>
+    <Combobox onSelect={handleSelect} className={className}>
       <ComboboxInput
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={!ready}
-        className='combobox-input'
-        placeholder='Search an address'
+        className={`combobox-input`}
+        placeholder={placeholder}
       />
       <ComboboxPopover>
         <ComboboxList>
