@@ -73,7 +73,7 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
         <PlacesAutoComplete setSelected={setSelected} />
       </div> */}
 
-      <div style={{ height: '500px', width: '100%' }}>
+      <div style={{ height: '800px', width: '100%' }}>
         <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
           <Map
             defaultCenter={position}
@@ -125,12 +125,20 @@ export function Directions({
     directionsRenderer?.setMap(null);
     setDirectionsService(new routesLibrary.DirectionsService());
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
+    const listener = google.maps.event.addListener(map, "bounds_changed", function () {
+      // Riduci lo zoom di uno step rispetto a quello calcolato
+      const currZoom = map.getZoom()
+      map.setZoom(currZoom ? currZoom - 1 : 12);
+
+      // Rimuovi l'ascoltatore per evitare che si ripeta
+      google.maps.event.removeListener(listener);
+    });
     console.log('ROUTES', origin, destination);
+
   }, [routesLibrary, map, origin, destination]);
 
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
-    console.log('CALC', origin, destination);
     directionsService
       .route({
         origin: origin,
@@ -144,55 +152,13 @@ export function Directions({
         setRoutes(response.routes);
 
         const weather_origin = await fetchWeatherAPI(origin);
+        const origin_info = formatWeatherInfo(origin, weather_origin)
         console.log(weather_origin);
+        const weather_destination = await fetchWeatherAPI(destination);
+        const destination_info = formatWeatherInfo(destination, weather_destination)
 
+        setPoints([origin_info, destination_info])
 
-
-
-        const date = new Date();
-
-        // use the toLocaleString() method to display the date in different timezones
-        const localTime = date.toLocaleString(navigator.language, {
-          hour: '2-digit',
-          minute: '2-digit',
-          timeZone: weather_origin.timezone
-        });
-        // console.log(navigator.language + "\n" + localTime + " " + city + " " + json.timezone)
-
-        const weather = weather_origin.current.weather[0];
-        const temp = Math.round((weather_origin.current.temp - 273.15) * 10) / 10;
-        const imgUrl = `https://openweathermap.org/img/wn/${weather.icon}.png`
-        const imgTag = weather.main;
-
-        // setPoints(points.push(origin, (Math.floor(Math.random() * 12)) + ""))
-
-        setPoints([{
-          lat: 43.653226,
-          lng: -79.3831843 + .05,
-          key: (Math.floor(Math.random() * 12)) + "",
-          imgUrl,
-          imgTag
-        }])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // const weather_destination = await fetchWeatherAPI(destination)
       })
       .catch((err) => console.error(err));
   }, [directionsService, directionsRenderer]);
@@ -231,41 +197,38 @@ export function Directions({
 }
 
 const fetchWeatherAPI = async (location: LatLng) => {
-  console.log('WEATHERIIIING');
-  /* let locations_info = ""
-  let i = 0
-  for (; i < locations.length - 1; i += 1)
-    locations_info += `${locations[i].lat},${locations[i].lng}+`
-  locations_info += `${locations[i].lat},${locations[i].lng}` 
-  const url = `https://api.meteomatics.com/2024-09-17T00:00:00Z/t_2m:C,weather_symbol_1h:idx/${locations_info}/json`; */
-  // const url = `https://api.meteomatics.com/2024-09-17T00:00:00Z/t_2m:C,weather_symbol_1h:idx/${locations[0].lat},${locations[0].lng}_${locations[1].lat},${locations[1].lng}:3/json`;
-
-  /* const url = `https://api.meteomatics.com/2024-09-17T00:00:00Z/t_2m:C,weather_symbol_1h:idx/${location.lat},${location.lng}/json`
-  const username = 'test_naccarato_matteo'; // Inserisci qui il tuo username
-  const password = '--'; // Inserisci qui la tua password
-
-  const auth = {
-    username: username,
-    password: password
-  };
-
-  try {
-    const response = await axios.get(url, { auth });
-    // console.log(response.data); // Risposta in formato HTML
-    return response.data
-  } catch (error) {
-    console.error('Errore:', error);
-  } */
   const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lng}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`;
-  const data = (await axios.get(url)).data;
-
-  return data
+  return (await axios.get(url)).data;
 };
 
 
+const formatWeatherInfo = (location: LatLng, info: any) => {
+  // use the toLocaleString() method to display the date in different timezones
+  const date = new Date();
+  const time = date.toLocaleString(navigator.language, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: info.timezone
+  });
+  // console.log(navigator.language + "\n" + localTime + " " + city + " " + json.timezone)
 
+  const weather = info.current.weather[0];
+  const temp = Math.round((info.current.temp - 273.15) * 10) / 10;
+  const imgUrl = `https://openweathermap.org/img/wn/${weather.icon}.png`
+  const imgTag = weather.main;
 
-type Point = google.maps.LatLngLiteral & { key: string } & { imgUrl: string } & { imgTag: string }
+  return {
+    lat: location.lat,
+    lng: location.lng, // + .05
+    key: (Math.floor(Math.random() * 1000)) + "",
+    time,
+    temp,
+    imgUrl,
+    imgTag
+  }
+}
+
+type Point = google.maps.LatLngLiteral & { key: string } & { time: string } & { temp: string } & { imgUrl: string } & { imgTag: string }
 type MarkersProps = { points: Point[] }
 
 const Markers = ({ points }: MarkersProps) => {
@@ -302,6 +265,7 @@ const Markers = ({ points }: MarkersProps) => {
       }
     })
   }
+  console.log(points[0])
 
   return <>
     {points.map(point => {
@@ -311,6 +275,10 @@ const Markers = ({ points }: MarkersProps) => {
         ref={marker => setMarkerRef(marker, point.key)}
         className={s.imageContainer}
       >
+        <div className={s.container}>
+          <h2>{point.time}</h2>
+          <h6 style={{ textAlign: "center" }}>{point.temp} °C</h6>
+        </div>
         <span className={s.imageContainer}>
           <img src={`${point.imgUrl}`} alt={`${point.imgTag}`} className={s.imageCover} />
         </span>
