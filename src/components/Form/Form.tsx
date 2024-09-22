@@ -7,21 +7,21 @@ import { LatLng } from 'use-places-autocomplete';
 import { useLoadScript } from '@react-google-maps/api';
 
 type Props = {
-  onSubmit: any,
+  onClear: any,
   setOrigin: any,
   setDestination: any
 }
 
-export function Form({ onSubmit, setOrigin, setDestination }: Props) {
+export function Form({ onClear, setOrigin, setDestination }: Props) {
 
   const [_origin, _setOrigin] = useState<LatLng | null>()
   const [_destination, _setDestination] = useState<LatLng | null>()
   const [_departureTime, _setDepartureTime] = useState<string>("")
 
-  const submit = () => {
+  const clear = () => {
     //setOrigin(_origin)
     //console.log("SUBMIT", _origin)
-    onSubmit()
+    onClear()
   }
 
   const { isLoaded } = useLoadScript({
@@ -59,7 +59,10 @@ export function Form({ onSubmit, setOrigin, setDestination }: Props) {
       <option value="...">🚲</option>
     </select>
 
-    <button onClick={() => submit()} className="col btn btn-primary">CLEAR</button>
+    {/* <button onClick={() => clear()} className="col btn btn-primary">
+      <span className="material-icons material-symbols-outlined">delete_sweep</span>
+      Markers
+    </button> */}
 
   </div>;
 }

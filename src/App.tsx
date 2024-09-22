@@ -10,7 +10,6 @@ import { LatLng } from 'use-places-autocomplete';
 export function App() {
   const [origin, setOrigin] = useState<LatLng | string>("")
   const [destination, setDestination] = useState<LatLng | string>("")
-  /* const [destination, setDestination] = useState<LatLng | string>("500 College St, Toronto ON") */
 
   return (
     <div className='App'>
@@ -18,7 +17,9 @@ export function App() {
       <div className="main-container">
         <Description />
         <Form
-          onSubmit={() => console.log("submit", origin)}
+          onClear={() => {
+            console.log("clear")
+          }}
           setOrigin={setOrigin}
           setDestination={setDestination} />
 

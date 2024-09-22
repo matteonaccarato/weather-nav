@@ -30,6 +30,7 @@ import {
 import '@reach/combobox/styles.css';
 import { useLoadScript } from '@react-google-maps/api';
 /* import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete'; */
+/* import { getPointsBetween } from 'services/utils' */
 
 type LatLng = {
   lat: number;
@@ -44,18 +45,18 @@ type Props = {
   setPoints: any;
 };
 
-/* type PlacesAutoProps = {
-  name: string,
-  placeholder: string,
-  type?: string,
-  className?: string,
-  setSelected?: any
-} */
-
+type PointInfo = {
+  lat: number,
+  lng: number,
+  key: string,
+  time: string,
+  temp: number,
+  imgUrl: string,
+  imgTag: string
+}
 
 export function Intro({ origin, destination, departure_time, type }: Props) {
-  const position = { lat: 43.64, lng: -79.41 };
-  const [selected, setSelected] = useState<LatLng | null>(null);
+  const position = { lat: 50.8476, lng: 4.3572 }
   const [points, setPoints] = useState<MarkersProps>()
 
   const { isLoaded } = useLoadScript({
@@ -66,13 +67,9 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
   if (!isLoaded) return <div>Loading ...</div>;
 
   console.log('IM IN INTROOO');
-
+  console.log(position)
   return (
     <>
-      {/* <div className='places-container'>
-        <PlacesAutoComplete setSelected={setSelected} />
-      </div> */}
-
       <div style={{ height: '800px', width: '100%' }}>
         <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
           <Map
@@ -118,24 +115,37 @@ export function Directions({
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
 
-  console.log('IM IN DIRECTIONSSS', origin, destination);
+  // get current location
+  /* if ("geolocation" in navigator) {
+    navigator.geolocation.getCurrentPosition(
+      p => {
+        map?.setCenter({
+          lat: p.coords.latitude,
+          lng: p.coords.longitude
+        })
+      },
+      err => console.error("Error while retrieving current position", err)
+    )
+  } else console.error("Geolocatization not supported from the browser") */
 
   useEffect(() => {
     if (!routesLibrary || !map || origin === '' || destination === '') return;
     directionsRenderer?.setMap(null);
     setDirectionsService(new routesLibrary.DirectionsService());
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
-    const listener = google.maps.event.addListener(map, "bounds_changed", function () {
+    /* const listener = google.maps.event.addListener(map, "bounds_changed", function () {
       // Riduci lo zoom di uno step rispetto a quello calcolato
       const currZoom = map.getZoom()
       map.setZoom(currZoom ? currZoom - 1 : 12);
 
       // Rimuovi l'ascoltatore per evitare che si ripeta
       google.maps.event.removeListener(listener);
-    });
+    }); */
     console.log('ROUTES', origin, destination);
 
   }, [routesLibrary, map, origin, destination]);
+
+  let tmp: LatLng[] = []
 
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
@@ -151,13 +161,21 @@ export function Directions({
         directionsRenderer.setDirections(response);
         setRoutes(response.routes);
 
-        const weather_origin = await fetchWeatherAPI(origin);
+        /* console.log("A", points)
+        const tmp = await computePoints(origin, destination)
+        console.log("TMP", tmp)
+        setPoints(...tmp)
+        console.log("B", points) */
+
+        /* const weather_origin = await fetchWeatherAPI(origin);
         const origin_info = formatWeatherInfo(origin, weather_origin)
         console.log(weather_origin);
         const weather_destination = await fetchWeatherAPI(destination);
-        const destination_info = formatWeatherInfo(destination, weather_destination)
+        const destination_info = formatWeatherInfo(destination, weather_destination) */
 
-        setPoints([origin_info, destination_info])
+        const points = await getPointsBetween(origin, destination, Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2)))
+        setPoints(points)
+        console.log("POINTS", points)
 
       })
       .catch((err) => console.error(err));
@@ -196,13 +214,56 @@ export function Directions({
   );
 }
 
+async function getPointsBetween(p1: LatLng, p2: LatLng, n: number): Promise<PointInfo[]> {
+  n = Math.floor(n * .3)
+  if (n < 2)
+    n = 2
+  const points: PointInfo[] = [];
+  const deltaX = p2.lat - p1.lat;
+  const deltaY = p2.lng - p1.lng;
+
+  // Calcola i punti intermedi
+  for (let i = 0; i <= n + 1; i++) {
+    const t = i / (n + 1); // Parametro t tra 0 e 1
+    const lat = p1.lat + t * deltaX;
+    const lng = p1.lng + t * deltaY;
+    const point = { lat, lng }
+    const weather_point = await fetchWeatherAPI(point);
+    const point_info = formatWeatherInfo(point, weather_point)
+    // console.log(weather_point);
+    points.push(point_info);
+  }
+
+  return new Promise(resolve => {
+    resolve(points)
+  });
+}
+
+/* const computePoints = async (origin: LatLng, destination: LatLng) => {
+  const tmp: PointInfo[] = []
+  const points = [
+    origin,
+    destination,
+    ...getPointsBetween(origin, destination, Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2))),
+  ]
+
+  points.forEach(async (point: LatLng) => {
+    const weather_point = await fetchWeatherAPI(point);
+    const point_info = formatWeatherInfo(point, weather_point)
+    // console.log(weather_point);
+    tmp.push(point_info)
+  })
+
+  return tmp
+} */
+
 const fetchWeatherAPI = async (location: LatLng) => {
   const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lng}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`;
   return (await axios.get(url)).data;
 };
 
 
-const formatWeatherInfo = (location: LatLng, info: any) => {
+const formatWeatherInfo = (location: LatLng, info: any): PointInfo => {
   // use the toLocaleString() method to display the date in different timezones
   const date = new Date();
   const time = date.toLocaleString(navigator.language, {
@@ -220,7 +281,7 @@ const formatWeatherInfo = (location: LatLng, info: any) => {
   return {
     lat: location.lat,
     lng: location.lng, // + .05
-    key: (Math.floor(Math.random() * 1000)) + "",
+    key: (Math.floor(Math.random() * 10000)) + "",
     time,
     temp,
     imgUrl,

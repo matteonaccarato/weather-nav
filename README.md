@@ -1,5 +1,10 @@
 # weather-nav
 
+## TODO
+
+- x citta in mezzo a path, calcolo retta tra due punti e equi distanzio i punti
+- faccio container della pagina alta 100vh, divido in percentuali le sezioni
+
 Meteomatics provides a REST1-style API
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
