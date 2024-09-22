@@ -1,5 +1,7 @@
 # weather-nav
 
+Meteomatics provides a REST1-style API
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
