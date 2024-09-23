@@ -6,6 +6,7 @@ import { Header } from './components/Header/Header';
 import { Description } from './components/Description/Description'
 import { useState } from 'react';
 import { LatLng } from 'use-places-autocomplete';
+import { DEFAULT_ORIGIN, DEFAULT_DESTINATION } from 'data/defaultCoordinates'
 
 export function App() {
   const [origin, setOrigin] = useState<LatLng | string>("")
@@ -17,8 +18,9 @@ export function App() {
       <div className="main-container">
         <Description />
         <Form
-          onClear={() => {
-            console.log("clear")
+          onLoadExample={() => {
+            setOrigin(DEFAULT_ORIGIN)
+            setDestination(DEFAULT_DESTINATION)
           }}
           setOrigin={setOrigin}
           setDestination={setDestination} />

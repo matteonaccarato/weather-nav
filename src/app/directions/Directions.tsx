@@ -29,6 +29,7 @@ import {
 } from '@reach/combobox';
 import '@reach/combobox/styles.css';
 import { useLoadScript } from '@react-google-maps/api';
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from 'data/defaultCoordinates';
 /* import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete'; */
 /* import { getPointsBetween } from 'services/utils' */
 
@@ -56,7 +57,6 @@ type PointInfo = {
 }
 
 export function Intro({ origin, destination, departure_time, type }: Props) {
-  const position = { lat: 50.8476, lng: 4.3572 }
   const [points, setPoints] = useState<MarkersProps>()
 
   const { isLoaded } = useLoadScript({
@@ -67,14 +67,13 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
   if (!isLoaded) return <div>Loading ...</div>;
 
   console.log('IM IN INTROOO');
-  console.log(position)
   return (
     <>
       <div style={{ height: '800px', width: '100%' }}>
         <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
           <Map
-            defaultCenter={position}
-            defaultZoom={9}
+            defaultCenter={DEFAULT_CENTER}
+            defaultZoom={DEFAULT_ZOOM}
             mapId={process.env.REACT_APP_MAP_ID}
             fullscreenControl={false}
           >

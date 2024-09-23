@@ -2,8 +2,8 @@
 
 ## TODO
 
-- x citta in mezzo a path, calcolo retta tra due punti e equi distanzio i punti
 - faccio container della pagina alta 100vh, divido in percentuali le sezioni
+- mettere mappa con altezza 30vh
 
 Meteomatics provides a REST1-style API
 
