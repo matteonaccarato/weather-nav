@@ -10,16 +10,9 @@ type Props = {
     value?: string,
     onChange?: any
 }
-type LatLng = {
-    lat: number;
-    lng: number;
-};
+
 
 export function Input({ type, name, placeholder, className, value, onChange }: Props) {
-    /* const [selected, setSelected] = useState<LatLng | null>(null);
-
-    return <PlacesAutoComplete setSelected={setSelected} /> */
-
     return <input
         type={type || 'text'}
         name={name}

@@ -12,12 +12,15 @@
   width: 275px;
   top: 0px;
   right: 0px;
-  padding: 1.25rem;
-  padding-top: 0px;
+  padding: 15px;
   margin: 0.25rem;
   color: white;
   background-color: #2d3748;
   border-radius: 0.25rem;
+  height: 300px;
+  overflow-y: auto;
+  max-width: 50% !important;
+  overflow-x: auto;
 }
 
 ul {
@@ -32,15 +35,6 @@ li button {
   border: none;
  cursor: pointer;
 }
-
-/* .places-container {
-  position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 10;
-  width: 300px;
-} */
 
 .map-container {
   width: 100%;
@@ -79,4 +73,10 @@ li button {
 
   /* Support for IE. */
   font-feature-settings: 'liga';
+}
+
+.input, .combobox-input, .dropdown-vehicle {
+  border-radius: 5px;
+  border: 1px solid rgba(0,0,0,.25);
+  padding: 8px;
 }

@@ -19,19 +19,19 @@ export function Header() {
       } */
 
     const renderAuthProfile = () => {
-        return <div>
+        return <>
             {/* <div>aa</div> */}
             <img src={`https://api.dicebear.com/5.x/bottts/svg?seed=aa`} alt='' style={{ width: 40 }} className="rounded-circle" />
             {/* Signout */}
             {/* <Link to="#" onClick={signout}>Signout</Link> */}
-        </div>
+        </>
     }
 
-    return <div className={`row ${s.container}`}>
-        <div className="col-xs-12 col-sm-4">
+    return <div className={`${s.container}`}>
+        <div className="">
             <Logo onClick={() => console.log("click")} title={"weather-nav"} subtitle={""} image={logoSrc} />
         </div>
-        <div className="col-xs-12 col-sm-8 text-end">
+        <div className="">
             {renderAuthProfile()}
         </div>
     </div>

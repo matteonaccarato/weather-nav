@@ -66,10 +66,9 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
 
   if (!isLoaded) return <div>Loading ...</div>;
 
-  console.log('IM IN INTROOO');
   return (
     <>
-      <div style={{ height: '800px', width: '100%' }}>
+      <div style={{ height: '60vh', width: '100%' }}>
         <APIProvider apiKey={process.env.REACT_APP_GOOGLE_MAPS_API_KEY}>
           <Map
             defaultCenter={DEFAULT_CENTER}
@@ -111,35 +110,18 @@ export function Directions({
     useState<google.maps.DirectionsRenderer>();
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
+  const [prevDuration, setPrevDuration] = useState<number | null>(null);
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
-
-  // get current location
-  /* if ("geolocation" in navigator) {
-    navigator.geolocation.getCurrentPosition(
-      p => {
-        map?.setCenter({
-          lat: p.coords.latitude,
-          lng: p.coords.longitude
-        })
-      },
-      err => console.error("Error while retrieving current position", err)
-    )
-  } else console.error("Geolocatization not supported from the browser") */
+  // setLeg(selected?.legs[0])
+  // setDuration(leg && leg.duration ? Math.round(leg.duration.value / 3600) : 0)
 
   useEffect(() => {
     if (!routesLibrary || !map || origin === '' || destination === '') return;
     directionsRenderer?.setMap(null);
     setDirectionsService(new routesLibrary.DirectionsService());
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
-    /* const listener = google.maps.event.addListener(map, "bounds_changed", function () {
-      // Riduci lo zoom di uno step rispetto a quello calcolato
-      const currZoom = map.getZoom()
-      map.setZoom(currZoom ? currZoom - 1 : 12);
 
-      // Rimuovi l'ascoltatore per evitare che si ripeta
-      google.maps.event.removeListener(listener);
-    }); */
     console.log('ROUTES', origin, destination);
 
   }, [routesLibrary, map, origin, destination]);
@@ -148,6 +130,13 @@ export function Directions({
 
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
+
+    const duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 0
+    console.log("DURATION", duration)
+    console.log("P-DURATION", prevDuration)
+    setPrevDuration(duration)
+    if (prevDuration && prevDuration === duration) return
+
     directionsService
       .route({
         origin: origin,
@@ -156,29 +145,19 @@ export function Directions({
         provideRouteAlternatives: true,
       })
       .then(async (response) => {
-        // console.log(response);
         directionsRenderer.setDirections(response);
         setRoutes(response.routes);
-
-        /* console.log("A", points)
-        const tmp = await computePoints(origin, destination)
-        console.log("TMP", tmp)
-        setPoints(...tmp)
-        console.log("B", points) */
-
-        /* const weather_origin = await fetchWeatherAPI(origin);
-        const origin_info = formatWeatherInfo(origin, weather_origin)
-        console.log(weather_origin);
-        const weather_destination = await fetchWeatherAPI(destination);
-        const destination_info = formatWeatherInfo(destination, weather_destination) */
-
-        const points = await getPointsBetween(origin, destination, Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2)))
+        const points = await getPointsBetween(
+          origin,
+          destination,
+          Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2)),
+          duration
+        )
         setPoints(points)
         console.log("POINTS", points)
-
       })
       .catch((err) => console.error(err));
-  }, [directionsService, directionsRenderer]);
+  }, [directionsService, directionsRenderer, leg]);
 
   // console.log(routes);
 
@@ -213,10 +192,13 @@ export function Directions({
   );
 }
 
-async function getPointsBetween(p1: LatLng, p2: LatLng, n: number): Promise<PointInfo[]> {
+async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: number): Promise<PointInfo[]> {
   n = Math.floor(n * .3)
   if (n < 2)
     n = 2
+  const hrs_step = Math.floor(duration / n)
+  let hrs_offset = -hrs_step
+
   const points: PointInfo[] = [];
   const deltaX = p2.lat - p1.lat;
   const deltaY = p2.lng - p1.lng;
@@ -228,7 +210,10 @@ async function getPointsBetween(p1: LatLng, p2: LatLng, n: number): Promise<Poin
     const lng = p1.lng + t * deltaY;
     const point = { lat, lng }
     const weather_point = await fetchWeatherAPI(point);
-    const point_info = formatWeatherInfo(point, weather_point)
+    // console.log(hrs_offset, hrs_step)
+    // console.log(weather_point)
+    const point_info = formatWeatherInfo(point, weather_point, hrs_offset + hrs_step)
+    hrs_offset += hrs_step
     // console.log(weather_point);
     points.push(point_info);
   }
@@ -262,18 +247,13 @@ const fetchWeatherAPI = async (location: LatLng) => {
 };
 
 
-const formatWeatherInfo = (location: LatLng, info: any): PointInfo => {
+const formatWeatherInfo = (location: LatLng, info: any, hrs_offset: number): PointInfo => {
   // use the toLocaleString() method to display the date in different timezones
-  const date = new Date();
-  const time = date.toLocaleString(navigator.language, {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: info.timezone
-  });
-  // console.log(navigator.language + "\n" + localTime + " " + city + " " + json.timezone)
+  const date = new Date()
+  date.setHours(date.getHours() + hrs_offset);
 
-  const weather = info.current.weather[0];
-  const temp = Math.round((info.current.temp - 273.15) * 10) / 10;
+  const temp = Math.round((info.hourly[hrs_offset].temp - 273.15) * 10) / 10;
+  const weather = info.hourly[hrs_offset].weather[0]
   const imgUrl = `https://openweathermap.org/img/wn/${weather.icon}.png`
   const imgTag = weather.main;
 
@@ -281,7 +261,11 @@ const formatWeatherInfo = (location: LatLng, info: any): PointInfo => {
     lat: location.lat,
     lng: location.lng, // + .05
     key: (Math.floor(Math.random() * 10000)) + "",
-    time,
+    time: date.toLocaleString(navigator.language, {
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: info.timezone
+    }),
     temp,
     imgUrl,
     imgTag
@@ -325,7 +309,7 @@ const Markers = ({ points }: MarkersProps) => {
       }
     })
   }
-  console.log(points[0])
+  // console.log(points[0])
 
   return <>
     {points.map(point => {
@@ -355,6 +339,7 @@ type P = {
   setSelected: any;
   placeholder: string;
   className: string;
+  id: string;
 };
 
 // export const PlacesAutoComplete = ({ type, name, placeholder, className, setSelected }: PlacesAutoProps) => {
@@ -362,6 +347,7 @@ export const PlacesAutoComplete = ({
   setSelected,
   placeholder,
   className,
+  id
 }: P) => {
   const {
     ready,
@@ -379,8 +365,6 @@ export const PlacesAutoComplete = ({
     const results = await getGeocode({ address });
     const { lat, lng } = getLatLng(results[0]);
     setSelected({ lat, lng });
-    console.log(lat, lng);
-    // setSelected(address);
   };
 
   return (
@@ -389,7 +373,8 @@ export const PlacesAutoComplete = ({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         disabled={!ready}
-        className={`combobox-input`}
+        className='combobox-input'
+        id={id}
         placeholder={placeholder}
       />
       <ComboboxPopover>

@@ -6,7 +6,7 @@ import { Header } from './components/Header/Header';
 import { Description } from './components/Description/Description'
 import { useState } from 'react';
 import { LatLng } from 'use-places-autocomplete';
-import { DEFAULT_ORIGIN, DEFAULT_DESTINATION } from 'data/defaultCoordinates'
+import { DEFAULT_ORIGIN, DEFAULT_DESTINATION, DEFAULT_ORIGIN_PLACEHOLDER, DEFAULT_DESTINATION_PLACEHOLDER } from 'data/defaultCoordinates'
 
 export function App() {
   const [origin, setOrigin] = useState<LatLng | string>("")
@@ -21,15 +21,17 @@ export function App() {
           onLoadExample={() => {
             setOrigin(DEFAULT_ORIGIN)
             setDestination(DEFAULT_DESTINATION)
+            const [input_origin, input_destination] = [document.getElementById("input-origin"), document.getElementById("input-destination")]
+            if (input_origin && input_destination) {
+              input_origin.setAttribute("placeholder", DEFAULT_ORIGIN_PLACEHOLDER)
+              input_destination.setAttribute("placeholder", DEFAULT_DESTINATION_PLACEHOLDER)
+            }
           }}
           setOrigin={setOrigin}
           setDestination={setDestination} />
 
         <Intro
-          //origin="100 Front St, Toronto ON"
           origin={origin}
-          // origin={{ lat: 45.6460393, lng: -79.381385 }}
-          // destination="500 College St, Toronto ON"
           destination={destination}
           departure_time=""
           type="DRIVING" />
