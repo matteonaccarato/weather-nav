@@ -11,6 +11,9 @@ import { DEFAULT_ORIGIN, DEFAULT_DESTINATION, DEFAULT_ORIGIN_PLACEHOLDER, DEFAUL
 export function App() {
   const [origin, setOrigin] = useState<LatLng | string>("")
   const [destination, setDestination] = useState<LatLng | string>("")
+  const [departureTime, setDepartureTime] = useState<string>(new Date().toISOString())//.slice(0, 16))
+  const [vehicle, setVehicle] = useState<string>("DRIVING")
+  /* const [vehicle, setVehicle] = useState<google.maps.TravelMode>(google.maps.TravelMode.DRIVING) */
 
   return (
     <div className='App'>
@@ -32,13 +35,15 @@ export function App() {
             }, 2000)
           }}
           setOrigin={setOrigin}
-          setDestination={setDestination} />
+          setDestination={setDestination}
+          setDepartureTime={setDepartureTime}
+          setVehicle={setVehicle} />
 
         <Intro
           origin={origin}
           destination={destination}
-          departure_time=""
-          type="DRIVING" />
+          departure_time={departureTime}
+          vehicle={vehicle} />
       </div>
     </div>
   );

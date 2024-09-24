@@ -30,6 +30,9 @@ import {
 import '@reach/combobox/styles.css';
 import { useLoadScript } from '@react-google-maps/api';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from 'data/defaultCoordinates';
+import { toast } from 'services/sweet-alert';
+import { Loader } from 'components/Loader/Loader';
+import { calculateHoursDifference } from 'services/utils';
 /* import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete'; */
 /* import { getPointsBetween } from 'services/utils' */
 
@@ -41,7 +44,8 @@ type Props = {
   origin: LatLng;
   destination: LatLng;
   departure_time: string;
-  type: string;
+  /* type: google.maps.TravelMode; */
+  vehicle: string;
   points: any;
   setPoints: any;
 };
@@ -56,7 +60,7 @@ type PointInfo = {
   imgTag: string
 }
 
-export function Intro({ origin, destination, departure_time, type }: Props) {
+export function Intro({ origin, destination, departure_time, vehicle }: Props) {
   const [points, setPoints] = useState<MarkersProps>()
 
   const { isLoaded } = useLoadScript({
@@ -64,7 +68,9 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
     libraries: ['places'],
   });
 
-  if (!isLoaded) return <div>Loading ...</div>;
+  if (!isLoaded) return <div style={{ height: "60vh" }} className='d-flex justify-content-center align-items-center'>
+    <Loader />
+  </div>;
 
   return (
     <>
@@ -81,7 +87,7 @@ export function Intro({ origin, destination, departure_time, type }: Props) {
               origin={origin}
               destination={destination}
               departure_time={departure_time}
-              type={type}
+              vehicle={vehicle}
               points={points}
               setPoints={setPoints}
             />
@@ -98,7 +104,7 @@ export function Directions({
   origin,
   destination,
   departure_time,
-  type,
+  vehicle,
   points,
   setPoints
 }: Props) {
@@ -111,8 +117,11 @@ export function Directions({
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
   const [prevDuration, setPrevDuration] = useState<number | null>(null);
-  const [prevOrigin, setPrevOrigin] = useState<LatLng | null>(null);
-  const [prevDestination, setPrevDestination] = useState<LatLng | null>(null);
+  const [prevOrigin, setPrevOrigin] = useState<LatLng | string>("");
+  const [prevDestination, setPrevDestination] = useState<LatLng | string>("");
+  const [prevDepartureTime, setPrevDepartureTime] = useState<string | null>(null)
+  const [prevVehicle, setPrevVehicle] = useState<string | null>(null)
+
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
   // setLeg(selected?.legs[0])
@@ -126,7 +135,7 @@ export function Directions({
 
     console.log('ROUTES', origin, destination);
 
-  }, [routesLibrary, map, origin, destination]);
+  }, [routesLibrary, map, origin, destination, departure_time, vehicle]);
 
   let tmp: LatLng[] = []
 
@@ -136,19 +145,28 @@ export function Directions({
     const duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 0
     console.log("DURATION", duration)
     console.log("P-DURATION", prevDuration)
-    if (prevOrigin && prevOrigin === origin
-      && prevDestination && prevDestination === destination
-      && prevDuration && prevDuration === duration)
+    console.log(departure_time)
+    if ((prevOrigin && prevOrigin !== "" && prevOrigin === origin
+      && prevDestination && prevDestination !== "" && prevDestination === destination
+      && prevDuration && prevDuration === duration
+      && prevDepartureTime && prevDepartureTime === departure_time
+      && prevVehicle && prevVehicle === vehicle)
+      || !origin || !destination)
       return
 
+    console.log("PREV ORIGIN", prevOrigin)
     setPrevDuration(duration)
-    setPrevOrigin(origin)
-    setPrevDestination(destination)
-
+    if (origin) setPrevOrigin(origin)
+    if (destination) setPrevDestination(destination)
+    setPrevDepartureTime(departure_time)
+    setPrevVehicle(vehicle)
+    console.log(origin)
+    console.log("DESTINATION", destination)
+    const travelMode = parseTravelMode(vehicle)
     directionsService
       .route({
-        origin: origin,
-        destination: destination,
+        origin: origin ? origin : prevOrigin,
+        destination: destination ? destination : prevDestination,
         travelMode: google.maps.TravelMode.DRIVING,
         provideRouteAlternatives: true,
       })
@@ -159,13 +177,17 @@ export function Directions({
           origin,
           destination,
           Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2)),
-          duration
+          duration,
+          calculateHoursDifference(departure_time)
         )
         setPoints(points)
         console.log("POINTS", points)
       })
-      .catch((err) => console.error(err));
-  }, [directionsService, directionsRenderer, leg]);
+      .catch((err) => {
+        console.error(err)
+        toast("error", err.message)
+      });
+  }, [directionsService, directionsRenderer, leg, departure_time, vehicle]);
 
   // console.log(routes);
 
@@ -200,12 +222,14 @@ export function Directions({
   );
 }
 
-async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: number): Promise<PointInfo[]> {
+async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: number, base_shift: number): Promise<PointInfo[]> {
   n = Math.floor(n * .3)
   if (n < 2)
     n = 2
   const hrs_step = Math.floor(duration / n)
   let hrs_offset = -hrs_step
+
+  console.log(base_shift)
 
   const points: PointInfo[] = [];
   const deltaX = p2.lat - p1.lat;
@@ -220,7 +244,7 @@ async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: num
     const weather_point = await fetchWeatherAPI(point);
     // console.log(hrs_offset, hrs_step)
     // console.log(weather_point)
-    const point_info = formatWeatherInfo(point, weather_point, hrs_offset + hrs_step)
+    const point_info = formatWeatherInfo(point, weather_point, hrs_offset + hrs_step + base_shift)
     hrs_offset += hrs_step
     // console.log(weather_point);
     points.push(point_info);
@@ -260,6 +284,10 @@ const formatWeatherInfo = (location: LatLng, info: any, hrs_offset: number): Poi
   const date = new Date()
   date.setHours(date.getHours() + hrs_offset);
 
+  if (hrs_offset < 0)
+    hrs_offset = 0
+  else if (hrs_offset >= info.hourly.length)
+    hrs_offset = info.hourly.length - 1
   const temp = Math.round((info.hourly[hrs_offset].temp - 273.15) * 10) / 10;
   const weather = info.hourly[hrs_offset].weather[0]
   const imgUrl = `https://openweathermap.org/img/wn/${weather.icon}.png`
@@ -400,3 +428,12 @@ export const PlacesAutoComplete = ({
     </Combobox>
   );
 };
+
+
+const parseTravelMode = (mode: string): google.maps.TravelMode => {
+  switch (mode) {
+    case "BICYCLING": return google.maps.TravelMode.BICYCLING
+    case "WALKING": return google.maps.TravelMode.WALKING
+    default: return google.maps.TravelMode.DRIVING
+  }
+}

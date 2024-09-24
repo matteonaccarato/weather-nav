@@ -6,6 +6,8 @@
 - possibilita' di selezionare il mezzo di spostamento
 - sistemare orario di partenza (semplice shift in avanti di qualche ora/giorno)
 - abbellire div informazioni viaggio (solo info rilevanti, se altre routes mettere colori in funzione di tempo di percorrenza)
+- limitare scelta giorno e orario a al massimo 24h da ora corrente
+- mettere colori a testo temperatura
 
 Meteomatics provides a REST1-style API
 

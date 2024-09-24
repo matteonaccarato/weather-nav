@@ -15,3 +15,15 @@ export function getPointsBetween(p1: LatLng, p2: LatLng, n: number): LatLng[] {
 
     return points;
 }
+
+export const calculateHoursDifference = (targetDateStr: string): number => {
+    const targetDate = new Date(targetDateStr); // Data fornita
+    const currentDate = new Date(); // Data corrente
+
+    // Differenza in millisecondi
+    const differenceInMs = targetDate.getTime() - currentDate.getTime();
+
+    // Converti la differenza da millisecondi a ore
+    const differenceInHours = differenceInMs / (1000 * 60 * 60);
+    return Math.round(differenceInHours);
+}

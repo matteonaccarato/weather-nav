@@ -9,11 +9,18 @@ import { useLoadScript } from '@react-google-maps/api';
 type Props = {
   onLoadExample: any,
   setOrigin: any,
-  setDestination: any
+  setDestination: any,
+  setDepartureTime: any,
+  setVehicle: any
 }
 
-export function Form({ onLoadExample, setOrigin, setDestination }: Props) {
-  const [_departureTime, _setDepartureTime] = useState<string>("")
+export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTime, setVehicle }: Props) {
+  const [_departureTime, _setDepartureTime] = useState<string>(new Date().toISOString())// .slice(0, 16))
+
+  const setDepTime = (time: string) => {
+    _setDepartureTime(time)
+    setDepartureTime(time)
+  }
 
   const loadExample = () => {
     onLoadExample()
@@ -24,7 +31,7 @@ export function Form({ onLoadExample, setOrigin, setDestination }: Props) {
     libraries: ['places'],
   });
 
-  if (!isLoaded) return <div>Loading ...</div>;
+  if (!isLoaded) return <></>;
 
   return <div className={`${s.container} row gap-5 mb-3`}>
 
@@ -45,14 +52,17 @@ export function Form({ onLoadExample, setOrigin, setDestination }: Props) {
       placeholder=""
       type='datetime-local'
       className={`col-12 col-sm-2 ${s.departure_time}`}
-      value={new Date().toISOString().slice(0, 16)}
-      onChange={(e: any) => _setDepartureTime(e.target.value)} />
+      value={_departureTime.slice(0, 16)}
+      onChange={(e: any) => setDepTime(e.target.value)} />
 
-    <select className="col-3 col-sm-1 dropdown-vehicle" defaultValue={"DRIVING"}>
+    <select className="col-3 col-sm-1 dropdown-vehicle" defaultValue={google.maps.TravelMode.DRIVING} onSelect={setVehicle}>
       {/* <option>Vehicle</option> */}
       <option value="DRIVING">🚗</option>
+      <option value="BICYCLING">🚲</option>
       <option value="WALKING">🚶‍♂️</option>
-      <option value="...">🚲</option>
+      {/* <option value={google.maps.TravelMode.DRIVING}>🚗</option>
+      <option value={google.maps.TravelMode.BICYCLING}>🚲</option>
+      <option value={google.maps.TravelMode.WALKING}>🚶‍♂️</option> */}
     </select>
 
     <button onClick={() => loadExample()} className="col-7 col-sm-1 btn btn-primary d-flex justify-content-center align-items-center gap-1">
