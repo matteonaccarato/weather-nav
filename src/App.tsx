@@ -26,6 +26,10 @@ export function App() {
               input_origin.setAttribute("placeholder", DEFAULT_ORIGIN_PLACEHOLDER)
               input_destination.setAttribute("placeholder", DEFAULT_DESTINATION_PLACEHOLDER)
             }
+            setTimeout(() => {
+              setOrigin("")
+              setDestination("")
+            }, 2000)
           }}
           setOrigin={setOrigin}
           setDestination={setDestination} />

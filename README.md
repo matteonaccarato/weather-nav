@@ -2,8 +2,10 @@
 
 ## TODO
 
-- faccio container della pagina alta 100vh, divido in percentuali le sezioni
-- mettere mappa con altezza 30vh
+- provare a cambiare origin/destination e vedere cosa succede
+- possibilita' di selezionare il mezzo di spostamento
+- sistemare orario di partenza (semplice shift in avanti di qualche ora/giorno)
+- abbellire div informazioni viaggio (solo info rilevanti, se altre routes mettere colori in funzione di tempo di percorrenza)
 
 Meteomatics provides a REST1-style API
 

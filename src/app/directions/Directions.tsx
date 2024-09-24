@@ -111,6 +111,8 @@ export function Directions({
   const [routes, setRoutes] = useState<google.maps.DirectionsRoute[]>([]);
   const [routeIndex, setRouteIndex] = useState(0);
   const [prevDuration, setPrevDuration] = useState<number | null>(null);
+  const [prevOrigin, setPrevOrigin] = useState<LatLng | null>(null);
+  const [prevDestination, setPrevDestination] = useState<LatLng | null>(null);
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
   // setLeg(selected?.legs[0])
@@ -134,8 +136,14 @@ export function Directions({
     const duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 0
     console.log("DURATION", duration)
     console.log("P-DURATION", prevDuration)
+    if (prevOrigin && prevOrigin === origin
+      && prevDestination && prevDestination === destination
+      && prevDuration && prevDuration === duration)
+      return
+
     setPrevDuration(duration)
-    if (prevDuration && prevDuration === duration) return
+    setPrevOrigin(origin)
+    setPrevDestination(destination)
 
     directionsService
       .route({
