@@ -38,7 +38,9 @@ export function App() {
           setOrigin={setOrigin}
           setDestination={setDestination}
           setDepartureTime={setDepartureTime}
-          setVehicle={setVehicle} />
+          setVehicle={setVehicle}
+          currOrigin={origin}
+          currDestination={destination} />
 
         <Intro
           origin={origin}

@@ -5,3 +5,8 @@
 .dropdown-vehicle * {
     background-color: red !important;
 }
+
+.swap:hover { 
+    cursor: pointer;
+    color: #0D6EFD;
+}

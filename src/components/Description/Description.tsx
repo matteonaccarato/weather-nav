@@ -5,7 +5,7 @@ export function Description() {
         <div className="col-12 col-sm-6">
             <h2>WHAT IS IT</h2>
             <ul>
-                <li>Bored of jumping from navigator and weather apps to plan long trips by 🚗 or 🚲 ? </li>
+                <li>Bored of jumping from <b>NAVIGATOR</b> and <b>WEATHER</b> apps to plan long trips by 🚗 or 🚲 ? </li>
                 <li><b>ONE WEBAPP</b> to see the route to follow and the weather you will encouter when you will reach specific points along the route </li>
                 <li>Click the button "example" to load an <b>EXAMPLE</b></li>
             </ul>

@@ -135,7 +135,7 @@ export function Directions({
 
     console.log('ROUTES', origin, destination);
 
-  }, [routesLibrary, map, origin, destination, departure_time, vehicle]);
+  }, [routesLibrary, map, origin, destination, vehicle]);
 
   let tmp: LatLng[] = []
 
@@ -160,14 +160,12 @@ export function Directions({
     if (destination) setPrevDestination(destination)
     setPrevDepartureTime(departure_time)
     setPrevVehicle(vehicle)
-    console.log(origin)
-    console.log("DESTINATION", destination)
     const travelMode = parseTravelMode(vehicle)
     directionsService
       .route({
         origin: origin ? origin : prevOrigin,
         destination: destination ? destination : prevDestination,
-        travelMode: google.maps.TravelMode.DRIVING,
+        travelMode: travelMode,
         provideRouteAlternatives: true,
       })
       .then(async (response) => {
@@ -255,23 +253,6 @@ async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: num
   });
 }
 
-/* const computePoints = async (origin: LatLng, destination: LatLng) => {
-  const tmp: PointInfo[] = []
-  const points = [
-    origin,
-    destination,
-    ...getPointsBetween(origin, destination, Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2))),
-  ]
-
-  points.forEach(async (point: LatLng) => {
-    const weather_point = await fetchWeatherAPI(point);
-    const point_info = formatWeatherInfo(point, weather_point)
-    // console.log(weather_point);
-    tmp.push(point_info)
-  })
-
-  return tmp
-} */
 
 const fetchWeatherAPI = async (location: LatLng) => {
   const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lng}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`;
