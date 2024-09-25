@@ -395,16 +395,17 @@ export const PlacesAutoComplete = ({
 
   // adress to lat and lg
   const handleSelect = async (address: string) => {
+    document.getElementById("departure_time")?.removeAttribute("disabled")
+
     setValue(address, false);
     clearSuggestions();
-
     const results = await getGeocode({ address });
     const { lat, lng } = getLatLng(results[0]);
     setSelected({ lat, lng });
   };
 
   return (
-    <Combobox onSelect={handleSelect} className={className}>
+    <Combobox onSelect={handleSelect} className={`${className}`}>
       <ComboboxInput
         value={value}
         onChange={(e) => setValue(e.target.value)}

@@ -5,6 +5,7 @@ import { PlacesAutoComplete } from 'app/directions/Directions';
 import { LatLng } from 'use-places-autocomplete';
 
 import { useLoadScript } from '@react-google-maps/api';
+import { toast } from 'services/sweet-alert';
 
 type Props = {
   onLoadExample: any,
@@ -15,11 +16,14 @@ type Props = {
 }
 
 export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTime, setVehicle }: Props) {
-  const [_departureTime, _setDepartureTime] = useState<string>(new Date().toISOString())// .slice(0, 16))
+  const [_departureTime, _setDepartureTime] = useState<string>(new Date().toISOString()) // .slice(0, 16))
 
   const setDepTime = (time: string) => {
     _setDepartureTime(time)
     setDepartureTime(time)
+    // Max forecast exceeded (48hrs), it will be set 48hrs 
+    if ((new Date(time).getTime() - new Date().getTime()) / (1000 * 60 * 60) > 48)
+      toast("warning", "Max forecast exceeded (48hrs), Last forecast loaded")
   }
 
   const loadExample = () => {
@@ -33,7 +37,7 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
 
   if (!isLoaded) return <></>;
 
-  return <div className={`${s.container} row gap-5 mb-3`}>
+  return <div className={`row gap-3 gap-sm-5 mb-3 mt-4 mt-sm-5`}>
 
     <PlacesAutoComplete
       placeholder="Origin"
@@ -50,6 +54,7 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
     <Input
       name='departure_time'
       placeholder=""
+      id="departure_time"
       type='datetime-local'
       className={`col-12 col-sm-2 ${s.departure_time}`}
       value={_departureTime.slice(0, 16)}
@@ -65,7 +70,7 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
       <option value={google.maps.TravelMode.WALKING}>🚶‍♂️</option> */}
     </select>
 
-    <button onClick={() => loadExample()} className="col-7 col-sm-1 btn btn-primary d-flex justify-content-center align-items-center gap-1">
+    <button onClick={() => loadExample()} className="col-8 col-sm-1 btn btn-primary d-flex justify-content-center align-items-center gap-1 p-2">
       <span className="material-icons material-symbols-outlined">publish</span>
       Example
     </button>

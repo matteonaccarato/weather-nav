@@ -6,7 +6,7 @@ export async function toast(type: string, msg: string) {
         position: "top-end",
         icon: type,
         showConfirmButton: false,
-        timer: 3000,
+        timer: 5000,
         toast: true,
         title: msg
     })

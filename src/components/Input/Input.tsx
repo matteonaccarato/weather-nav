@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 type Props = {
     name: string,
     placeholder: string,
+    id?: string,
     type?: string,
     className?: string,
     value?: string,
@@ -12,8 +13,9 @@ type Props = {
 }
 
 
-export function Input({ type, name, placeholder, className, value, onChange }: Props) {
+export function Input({ type, id, name, placeholder, className, value, onChange }: Props) {
     return <input
+        id={id || ""}
         type={type || 'text'}
         name={name}
         placeholder={placeholder}

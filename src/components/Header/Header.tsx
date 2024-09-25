@@ -1,6 +1,7 @@
 import { Logo } from 'components/Logo/Logo'
 import s from './style.module.css';
 import logoSrc from 'assets/images/logo.webp';
+import logoPlane from 'assets/images/logo.png'
 
 /* import { ButtonPrimary } from 'components/ButtonPrimary/ButtonPrimary'
 import { useDispatch, useSelector } from 'react-redux'
@@ -21,7 +22,8 @@ export function Header() {
     const renderAuthProfile = () => {
         return <>
             {/* <div>aa</div> */}
-            <img src={`https://api.dicebear.com/5.x/bottts/svg?seed=aa`} alt='' style={{ width: 40 }} className="rounded-circle" />
+            {/* <img src={`https://api.dicebear.com/5.x/bottts/svg?seed=aa`} alt='' style={{ width: 40 }} className="rounded-circle" /> */}
+            <img src={logoPlane} alt='' style={{ width: 40 }} className="" />
             {/* Signout */}
             {/* <Link to="#" onClick={signout}>Signout</Link> */}
         </>

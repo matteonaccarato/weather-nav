@@ -18,7 +18,7 @@ export function App() {
   return (
     <div className='App'>
       <Header />
-      <div className="main-container">
+      <div className="p-4 p-sm-5">
         <Description />
         <Form
           onLoadExample={() => {
@@ -29,6 +29,7 @@ export function App() {
               input_origin.setAttribute("placeholder", DEFAULT_ORIGIN_PLACEHOLDER)
               input_destination.setAttribute("placeholder", DEFAULT_DESTINATION_PLACEHOLDER)
             }
+            document.getElementById("departure_time")?.setAttribute("disabled", "true")
             setTimeout(() => {
               setOrigin("")
               setDestination("")
