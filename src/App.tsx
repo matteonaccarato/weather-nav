@@ -4,9 +4,10 @@ import { Intro } from './app/directions/Directions';
 import { Form } from './components/Form/Form';
 import { Header } from './components/Header/Header';
 import { Description } from './components/Description/Description'
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { LatLng } from 'use-places-autocomplete';
 import { DEFAULT_ORIGIN, DEFAULT_DESTINATION, DEFAULT_ORIGIN_PLACEHOLDER, DEFAULT_DESTINATION_PLACEHOLDER } from 'data/defaultCoordinates'
+import { toast } from 'services/sweet-alert';
 
 export function App() {
   const [origin, setOrigin] = useState<LatLng | string>("")

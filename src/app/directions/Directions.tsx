@@ -32,7 +32,7 @@ import { useLoadScript } from '@react-google-maps/api';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from 'data/defaultCoordinates';
 import { toast } from 'services/sweet-alert';
 import { Loader } from 'components/Loader/Loader';
-import { calculateHoursDifference } from 'services/utils';
+import { calculateHoursDifference, weatherTag2Color } from 'services/utils';
 /* import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete'; */
 /* import { getPointsBetween } from 'services/utils' */
 
@@ -132,7 +132,11 @@ export function Directions({
     directionsRenderer?.setMap(null);
     setDirectionsService(new routesLibrary.DirectionsService());
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
-
+    if (origin && destination
+      && origin === destination) {
+      toast("error", "Origin and Destination are the same")
+      return
+    }
     console.log('ROUTES', origin, destination);
 
   }, [routesLibrary, map, origin, destination, vehicle]);
@@ -153,6 +157,12 @@ export function Directions({
       && prevVehicle && prevVehicle === vehicle)
       || !origin || !destination)
       return
+
+    if (origin && destination
+      && origin === destination) {
+      toast("error", "Origin and Destination are the same")
+      return
+    }
 
     console.log("PREV ORIGIN", prevOrigin)
     setPrevDuration(duration)
@@ -330,13 +340,15 @@ const Markers = ({ points }: MarkersProps) => {
 
   return <>
     {points.map(point => {
+      const backgroundClass = weatherTag2Color(point.imgTag.toLowerCase())
+
       return <AdvancedMarker
         position={point}
         key={point.key}
         ref={marker => setMarkerRef(marker, point.key)}
         className={s.imageContainer}
       >
-        <div className={s.container}>
+        <div className={`${s.container} ${backgroundClass}`}>
           <h2>{point.time}</h2>
           <h6 style={{ textAlign: "center" }}>{point.temp} °C</h6>
         </div>

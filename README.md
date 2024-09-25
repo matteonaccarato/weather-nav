@@ -6,6 +6,7 @@
 - limitare scelta giorno e orario a al massimo 24h da ora corrente
 - mettere colori a testo temperatura
 - citare openweathermap (se fa rest-api) e api di google cloud (aa, bb, cc, ...)
+- bug - loop infinito - se origin e destination sono gli stessi
 
 Meteomatics provides a REST1-style API
 

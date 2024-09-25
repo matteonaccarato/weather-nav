@@ -76,3 +76,15 @@ li button {
   border: 1px solid rgba(0,0,0,.25);
   padding: 8px;
 }
+
+.bg-rain {
+  background-color: rgba(95,189,239, .8) !important;
+}
+
+.bg-clouds {
+background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.bg-sun {
+  background-color: rgba(236,110,76, .8) !important;
+}

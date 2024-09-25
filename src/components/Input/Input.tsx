@@ -14,6 +14,11 @@ type Props = {
 
 
 export function Input({ type, id, name, placeholder, className, value, onChange }: Props) {
+    const [minDateTime, setMinDateTime] = useState("")
+    useEffect(() => {
+        setMinDateTime(new Date().toISOString().slice(0, 16))
+    }, [])
+
     return <input
         id={id || ""}
         type={type || 'text'}
@@ -21,5 +26,6 @@ export function Input({ type, id, name, placeholder, className, value, onChange 
         placeholder={placeholder}
         value={value}
         className={`${s.input} ${className}`}
-        onChange={onChange} />
+        onChange={onChange}
+        min={type === "datetime-local" ? minDateTime : ""} />
 }

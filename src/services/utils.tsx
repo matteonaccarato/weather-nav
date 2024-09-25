@@ -27,3 +27,9 @@ export const calculateHoursDifference = (targetDateStr: string): number => {
     const differenceInHours = differenceInMs / (1000 * 60 * 60);
     return Math.round(differenceInHours);
 }
+
+export const weatherTag2Color = (tag: string): string => {
+    if (tag.includes("rain")) return "bg-rain"
+    if (tag.includes("clouds")) return "bg-clouds"
+    return "bg-sun"
+}
