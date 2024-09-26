@@ -24,7 +24,9 @@ type Props = {
 const libraries = ['places']
 
 export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTime, setVehicle, currOrigin, currDestination }: Props) {
-  const [_departureTime, _setDepartureTime] = useState<string>(new Date().toISOString()) // .slice(0, 16))
+  const now = new Date();
+  const offset = now.getTimezoneOffset() * 60000;
+  const [_departureTime, _setDepartureTime] = useState<string>(new Date(now.getTime() - offset).toISOString()) // .slice(0, 16))
 
   const setDepTime = (time: string) => {
     _setDepartureTime(time)
@@ -86,12 +88,11 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
 
     <select className="col-3 col-sm-1 dropdown-vehicle" defaultValue={google.maps.TravelMode.DRIVING} onChange={e => setVehicle(e.target.value)}>
       {/* <option>Vehicle</option> */}
-      <option value="DRIVING">🚗</option>
-      <option value="BICYCLING">🚲</option>
+      {/* <option value="DRIVING">🚗</option>
+      <option value="BICYCLING">🚲</option> */}
       {/* <option value="WALKING">🚶‍♂️</option> */}
-      {/* <option value={google.maps.TravelMode.DRIVING}>🚗</option>
+      <option value={google.maps.TravelMode.DRIVING}>🚗</option>
       <option value={google.maps.TravelMode.BICYCLING}>🚲</option>
-      <option value={google.maps.TravelMode.WALKING}>🚶‍♂️</option> */}
     </select>
 
     <button onClick={() => loadExample()} className="col-8 col-sm-1 btn btn-primary d-flex justify-content-center align-items-center gap-1 p-2">

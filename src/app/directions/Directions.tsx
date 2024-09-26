@@ -63,7 +63,7 @@ type PointInfo = {
 const libraries = ['places']
 
 export function Intro({ origin, destination, departure_time, vehicle }: Props) {
-  const [points, setPoints] = useState<MarkersProps>()
+  const [points, setPoints] = useState<Point[] | undefined>()
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -304,7 +304,7 @@ const formatWeatherInfo = (location: LatLng, info: any, hrs_offset: number): Poi
 }
 
 type Point = google.maps.LatLngLiteral & { key: string } & { time: string } & { temp: string } & { imgUrl: string } & { imgTag: string }
-type MarkersProps = { points: Point[] }
+type MarkersProps = { points: Point[] | undefined }
 
 const Markers = ({ points }: MarkersProps) => {
   const map = useMap()
@@ -343,7 +343,7 @@ const Markers = ({ points }: MarkersProps) => {
   // console.log(points[0])
 
   return <>
-    {points.map(point => {
+    {points.map((point: Point) => {
       const backgroundClass = weatherTag2Color(point.imgTag.toLowerCase())
 
       return <AdvancedMarker
