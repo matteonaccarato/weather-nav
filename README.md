@@ -2,10 +2,7 @@
 
 ## TODO
 
-- abbellire div informazioni viaggio (solo info rilevanti, se altre routes mettere colori in funzione di tempo di percorrenza)
-- calcolo punti - distante secondo chat
 - citare openweathermap (se fa rest-api) e api di google cloud (aa, bb, cc, ...)
-- bug - loop infinito - se origin e destination sono gli stessi
 
 Meteomatics provides a REST1-style API
 

@@ -129,7 +129,7 @@ export function Directions({
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
     if (origin && destination
       && origin === destination) {
-      toast("error", "Origin and Destination are the same")
+      toast("warning", "Origin and Destination are the same")
       return
     }
     console.log('ROUTES', origin, destination);
@@ -139,13 +139,15 @@ export function Directions({
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
 
-    const duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 0
-    console.log("DURATION", duration)
+    let duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 1
+    if (duration === 0)
+      duration = 1
+    /* console.log("DURATION", duration)
     console.log("P-DURATION", prevDuration)
-    console.log(departure_time)
+    console.log(departure_time) */
     if ((prevOrigin && prevOrigin !== "" && prevOrigin === origin
       && prevDestination && prevDestination !== "" && prevDestination === destination
-      && prevDuration && prevDuration === duration
+      && prevDuration && Math.abs(prevDuration) === Math.abs(duration)
       && prevDepartureTime && prevDepartureTime === departure_time
       && prevVehicle && prevVehicle === vehicle)
       || !origin || !destination)
@@ -153,7 +155,7 @@ export function Directions({
 
     if (origin && destination
       && origin === destination) {
-      toast("error", "Origin and Destination are the same")
+      toast("warning", "Origin and Destination are the same")
       return
     }
 
@@ -211,9 +213,9 @@ export function Directions({
         <hr className={`m-1 ${s.separationRow}`} />
         <h4 className='mt-2'>{leg.distance?.text}</h4>
         <h4>{leg.duration?.text}</h4>
-        <hr className={`m-1 ${s.separationRow}`} />
 
         {routes.length > 1 ? <>
+          <hr className={`m-1 ${s.separationRow}`} />
           <h3 className='mt-2'>Alternatives</h3>
           <ul>
             {routes.map((route, index) => (
@@ -237,16 +239,21 @@ export function Directions({
 }
 
 async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: number, base_shift: number): Promise<PointInfo[]> {
+  const points: PointInfo[] = [];
+  if (duration === 0)
+    return new Promise(resolve => {
+      resolve(points)
+    });
+
   n = Math.floor(n * .3)
   if (n < 2)
     n = 2
   const hrs_step = Math.round(duration / (n + 1))
   let hrs_offset = -hrs_step
 
-  console.log("HRS_STEP", hrs_step)
-  console.log(base_shift)
+  /* console.log("HRS_STEP", hrs_step)
+  console.log(base_shift) */
 
-  const points: PointInfo[] = [];
   const deltaX = p2.lat - p1.lat;
   const deltaY = p2.lng - p1.lng;
 
@@ -257,11 +264,8 @@ async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: num
     const lng = p1.lng + t * deltaY;
     const point = { lat, lng }
     const weather_point = await fetchWeatherAPI(point);
-    // console.log(hrs_offset, hrs_step)
-    // console.log(weather_point)
     const point_info = formatWeatherInfo(point, weather_point, hrs_offset + hrs_step + base_shift)
     hrs_offset += hrs_step
-    // console.log(weather_point);
     points.push(point_info);
   }
 
