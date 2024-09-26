@@ -1,12 +1,8 @@
-import { Input } from 'components/Input/Input';
 import s from './style.module.css'
+import { Input } from 'components/Input/Input';
 import { useState } from 'react';
 import { PlacesAutoComplete } from 'app/directions/Directions';
 import { LatLng } from 'use-places-autocomplete';
-import usePlacesAutocomplete, {
-  getGeocode,
-  getLatLng,
-} from 'use-places-autocomplete';
 
 import { useLoadScript, Libraries } from '@react-google-maps/api';
 import { toast } from 'services/sweet-alert';
@@ -17,8 +13,8 @@ type Props = {
   setDestination: any,
   setDepartureTime: any,
   setVehicle: any,
-  currOrigin: LatLng | string,
-  currDestination: LatLng | string
+  currOrigin: LatLng | undefined,
+  currDestination: LatLng | undefined
 }
 
 const libraries = ['places']
@@ -34,14 +30,17 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
     // Max forecast exceeded (48hrs), it will be set 48hrs 
     if ((new Date(time).getTime() - new Date().getTime()) / (1000 * 60 * 60) > 48)
       toast("warning", "Max forecast exceeded (48hrs), Last forecast loaded")
+    else
+      toast("success", "Departure time updated :)")
   }
 
   const loadExample = () => {
     onLoadExample()
+    toast("success", "Example loaded :)")
   }
 
   const swapOriginDestination = () => {
-    if (currOrigin !== "" && currDestination !== "") {
+    if (currOrigin && currDestination) {
       const tmp = currOrigin
       setOrigin(currDestination)
       setDestination(tmp)
@@ -86,7 +85,10 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
       value={_departureTime.slice(0, 16)}
       onChange={(e: any) => setDepTime(e.target.value)} />
 
-    <select className="col-3 col-sm-1 dropdown-vehicle" defaultValue={google.maps.TravelMode.DRIVING} onChange={e => setVehicle(e.target.value)}>
+    <select className="col-3 col-sm-1 dropdown-vehicle" defaultValue={google.maps.TravelMode.DRIVING} onChange={e => {
+      setVehicle(e.target.value)
+      toast("success", "Vehicle updated :)")
+    }}>
       {/* <option>Vehicle</option> */}
       {/* <option value="DRIVING">🚗</option>
       <option value="BICYCLING">🚲</option> */}

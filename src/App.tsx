@@ -4,14 +4,14 @@ import { Intro } from './app/directions/Directions';
 import { Form } from './components/Form/Form';
 import { Header } from './components/Header/Header';
 import { Description } from './components/Description/Description'
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { LatLng } from 'use-places-autocomplete';
 import { DEFAULT_ORIGIN, DEFAULT_DESTINATION, DEFAULT_ORIGIN_PLACEHOLDER, DEFAULT_DESTINATION_PLACEHOLDER } from 'data/defaultCoordinates'
-import { toast } from 'services/sweet-alert';
+import { Footer } from 'components/Footer/Footer';
 
 export function App() {
-  const [origin, setOrigin] = useState<LatLng | string>("")
-  const [destination, setDestination] = useState<LatLng | string>("")
+  const [origin, setOrigin] = useState<LatLng | undefined>(undefined)
+  const [destination, setDestination] = useState<LatLng | undefined>(undefined)
   const [departureTime, setDepartureTime] = useState<string>(new Date().toISOString())//.slice(0, 16))
   const [vehicle, setVehicle] = useState<string>("DRIVING")
   /* const [vehicle, setVehicle] = useState<google.maps.TravelMode>(google.maps.TravelMode.DRIVING) */
@@ -32,8 +32,8 @@ export function App() {
             }
             document.getElementById("departure_time")?.setAttribute("disabled", "true")
             setTimeout(() => {
-              setOrigin("")
-              setDestination("")
+              setOrigin(undefined)
+              setDestination(undefined)
             }, 2000)
           }}
           setOrigin={setOrigin}
@@ -48,7 +48,9 @@ export function App() {
           destination={destination}
           departure_time={departureTime}
           vehicle={vehicle} />
+
       </div>
+      <Footer />
     </div>
   );
 }

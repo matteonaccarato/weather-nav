@@ -6,11 +6,8 @@ import {
   APIProvider,
   Map,
   AdvancedMarker,
-  Pin,
-  InfoWindow,
   useMap,
   useMapsLibrary,
-  useApiIsLoaded,
 } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
 
@@ -32,23 +29,23 @@ import { Libraries, useLoadScript } from '@react-google-maps/api';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from 'data/defaultCoordinates';
 import { toast } from 'services/sweet-alert';
 import { Loader } from 'components/Loader/Loader';
-import { calculateHoursDifference, weatherTag2Color } from 'services/utils';
-/* import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete'; */
-/* import { getPointsBetween } from 'services/utils' */
+import { calculateHoursDifference, duration2color, weatherTag2Color } from 'services/utils';
 
 type LatLng = {
   lat: number;
   lng: number;
 };
-type Props = {
-  origin: LatLng;
-  destination: LatLng;
+
+
+
+type IntroProps = {
+  origin: LatLng | undefined;
+  destination: LatLng | undefined;
   departure_time: string;
-  /* type: google.maps.TravelMode; */
   vehicle: string;
-  points: any;
-  setPoints: any;
 };
+
+type DirectionProps = IntroProps & { setPoints: any };
 
 type PointInfo = {
   lat: number,
@@ -62,7 +59,7 @@ type PointInfo = {
 
 const libraries = ['places']
 
-export function Intro({ origin, destination, departure_time, vehicle }: Props) {
+export function Intro({ origin, destination, departure_time, vehicle }: IntroProps) {
   const [points, setPoints] = useState<Point[] | undefined>()
 
   const { isLoaded } = useLoadScript({
@@ -85,13 +82,11 @@ export function Intro({ origin, destination, departure_time, vehicle }: Props) {
             mapId={process.env.REACT_APP_MAP_ID}
             fullscreenControl={false}
           >
-            {/* {selected && <Marker position={selected} />} */}
             <Directions
               origin={origin}
               destination={destination}
               departure_time={departure_time}
               vehicle={vehicle}
-              points={points}
               setPoints={setPoints}
             />
 
@@ -108,9 +103,8 @@ export function Directions({
   destination,
   departure_time,
   vehicle,
-  points,
   setPoints
-}: Props) {
+}: DirectionProps) {
   const map = useMap();
   const routesLibrary = useMapsLibrary('routes');
   const [directionsService, setDirectionsService] =
@@ -127,11 +121,9 @@ export function Directions({
 
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
-  // setLeg(selected?.legs[0])
-  // setDuration(leg && leg.duration ? Math.round(leg.duration.value / 3600) : 0)
 
   useEffect(() => {
-    if (!routesLibrary || !map || origin === '' || destination === '') return;
+    if (!routesLibrary || !map || !origin || !destination) return;
     directionsRenderer?.setMap(null);
     setDirectionsService(new routesLibrary.DirectionsService());
     setDirectionsRenderer(new routesLibrary.DirectionsRenderer({ map }));
@@ -143,8 +135,6 @@ export function Directions({
     console.log('ROUTES', origin, destination);
 
   }, [routesLibrary, map, origin, destination, vehicle]);
-
-  let tmp: LatLng[] = []
 
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
@@ -167,18 +157,17 @@ export function Directions({
       return
     }
 
-    console.log("PREV ORIGIN", prevOrigin)
+    /* console.log("PREV ORIGIN", prevOrigin) */
     setPrevDuration(duration)
     if (origin) setPrevOrigin(origin)
     if (destination) setPrevDestination(destination)
     setPrevDepartureTime(departure_time)
     setPrevVehicle(vehicle)
-    const travelMode = parseTravelMode(vehicle)
     directionsService
       .route({
         origin: origin ? origin : prevOrigin,
         destination: destination ? destination : prevDestination,
-        travelMode: travelMode,
+        travelMode: parseTravelMode(vehicle),
         provideRouteAlternatives: true,
       })
       .then(async (response) => {
@@ -211,24 +200,38 @@ export function Directions({
 
   // we have a leg to work with
   return (
-    <div className='directions'>
-      <h2>{selected.summary}</h2>
-      <p>
-        {leg.start_address.split(',')[0]} TO {leg.end_address.split(',')[0]}
-      </p>
-      <p>Distance: {leg.distance?.text}</p>
-      <p>Duration: {leg.duration?.text}</p>
+    <div className={`${s.navigationDescription}`}>
+      {/* <h2>{selected.summary}</h2> */}
+      <div className='d-flex flex-column align-items-center justify-content-center py-1 px-3'>
+        <h5 className="d-flex justify-content-center align-items-center">
+          {leg.start_address.split(',')[0]}
+          <span className="material-icons material-symbols-outlined">chevron_right</span>
+          {leg.end_address.split(',')[0]}
+        </h5>
+        <hr className={`m-1 ${s.separationRow}`} />
+        <h4 className='mt-2'>{leg.distance?.text}</h4>
+        <h4>{leg.duration?.text}</h4>
+        <hr className={`m-1 ${s.separationRow}`} />
 
-      <h2>Other Routes</h2>
-      <ul>
-        {routes.map((route, index) => (
-          <li key={route.summary}>
-            <button onClick={() => setRouteIndex(index)}>
-              {route.summary}
-            </button>
-          </li>
-        ))}
-      </ul>
+        {routes.length > 1 ? <>
+          <h3 className='mt-2'>Alternatives</h3>
+          <ul>
+            {routes.map((route, index) => (
+              <li key={route.summary}>
+                <button
+                  onClick={() => {
+                    setRouteIndex(index)
+                    toast("success", "Route changed")
+                  }}
+                  className={duration2color(routes[routeIndex].legs[0].duration?.value, route.legs[0].duration?.value)}>
+                  {route.summary}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </> : <></>}
+
+      </div>
     </div>
   );
 }

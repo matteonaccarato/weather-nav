@@ -3,22 +3,6 @@
   margin: 0;
 }
 
-.directions {
-  position: absolute;
-  width: 275px;
-  top: 0px;
-  right: 0px;
-  padding: 15px;
-  margin: 0.25rem;
-  color: white;
-  background-color: #2d3748;
-  border-radius: 0.25rem;
-  height: 300px;
-  overflow-y: auto;
-  max-width: 50% !important;
-  overflow-x: auto;
-}
-
 ul {
   padding: 0px;
   padding-left: 1.5rem;
@@ -87,4 +71,16 @@ background-color: rgba(255, 255, 255, 0.8) !important;
 
 .bg-sun {
   background-color: rgba(236,110,76, .8) !important;
+}
+
+.color-neutral {
+  color: rgb(247,229,102);
+}
+
+.color-better {
+  color: rgb(149,255,102);
+}
+
+.color-worse {
+  color: rgb(255,107,94);
 }
