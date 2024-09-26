@@ -8,7 +8,7 @@ import usePlacesAutocomplete, {
   getLatLng,
 } from 'use-places-autocomplete';
 
-import { useLoadScript } from '@react-google-maps/api';
+import { useLoadScript, Libraries } from '@react-google-maps/api';
 import { toast } from 'services/sweet-alert';
 
 type Props = {
@@ -20,6 +20,8 @@ type Props = {
   currOrigin: LatLng | string,
   currDestination: LatLng | string
 }
+
+const libraries = ['places']
 
 export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTime, setVehicle, currOrigin, currDestination }: Props) {
   const [_departureTime, _setDepartureTime] = useState<string>(new Date().toISOString()) // .slice(0, 16))
@@ -47,7 +49,8 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries: ['places'],
+    libraries: libraries as Libraries,
+    language: "en"
   });
 
   if (!isLoaded) return <></>;

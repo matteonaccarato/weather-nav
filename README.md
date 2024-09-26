@@ -3,8 +3,7 @@
 ## TODO
 
 - abbellire div informazioni viaggio (solo info rilevanti, se altre routes mettere colori in funzione di tempo di percorrenza)
-- limitare scelta giorno e orario a al massimo 24h da ora corrente
-- mettere colori a testo temperatura
+- calcolo punti - distante secondo chat
 - citare openweathermap (se fa rest-api) e api di google cloud (aa, bb, cc, ...)
 - bug - loop infinito - se origin e destination sono gli stessi
 

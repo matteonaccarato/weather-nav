@@ -28,7 +28,7 @@ import {
   ComboboxOption,
 } from '@reach/combobox';
 import '@reach/combobox/styles.css';
-import { useLoadScript } from '@react-google-maps/api';
+import { Libraries, useLoadScript } from '@react-google-maps/api';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from 'data/defaultCoordinates';
 import { toast } from 'services/sweet-alert';
 import { Loader } from 'components/Loader/Loader';
@@ -60,12 +60,15 @@ type PointInfo = {
   imgTag: string
 }
 
+const libraries = ['places']
+
 export function Intro({ origin, destination, departure_time, vehicle }: Props) {
   const [points, setPoints] = useState<MarkersProps>()
 
   const { isLoaded } = useLoadScript({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries: ['places'],
+    libraries: libraries as Libraries,
+    language: "en"
   });
 
   if (!isLoaded) return <div style={{ height: "60vh" }} className='d-flex justify-content-center align-items-center'>
@@ -234,9 +237,10 @@ async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: num
   n = Math.floor(n * .3)
   if (n < 2)
     n = 2
-  const hrs_step = Math.floor(duration / n)
+  const hrs_step = Math.round(duration / (n + 1))
   let hrs_offset = -hrs_step
 
+  console.log("HRS_STEP", hrs_step)
   console.log(base_shift)
 
   const points: PointInfo[] = [];
