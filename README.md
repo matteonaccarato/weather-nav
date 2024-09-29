@@ -10,8 +10,8 @@ SPA (Single-Page Application) built to optimise travel planning times by showing
 
 ### HOW
 🧑‍💻 React - Typescript <br>
-🌍 [Developer Google Maps](https://developers.google.com/maps) <br>
-☀️ [OpenWeatherMap](https://openweathermap.org/)
+🌍 [**Developer Google Maps**](https://developers.google.com/maps) <br>
+☀️ [**OpenWeatherMap**](https://openweathermap.org/)
 
 <hr>
 
