@@ -1,21 +1,7 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import {
-    APIProvider,
-    Map,
-    AdvancedMarker,
-    Pin,
-    InfoWindow,
-    useMap,
-    useMapsLibrary,
-    useApiIsLoaded,
-    Marker,
-} from '@vis.gl/react-google-maps';
-
 import usePlacesAutocomplete, {
     getGeocode,
     getLatLng,
+    LatLng,
 } from 'use-places-autocomplete';
 
 import {
@@ -25,25 +11,21 @@ import {
     ComboboxList,
     ComboboxOption,
 } from '@reach/combobox';
-import { useLoadScript } from '@react-google-maps/api';
 import '@reach/combobox/styles.css';
+
 type Props = {
-    name: string,
-    placeholder: string,
-    type?: string,
-    className?: string,
-    setSelected?: any
-}
+    setSelected: (input: LatLng | undefined) => void;
+    placeholder: string;
+    className: string;
+    id: string;
+};
 
-// export const PlacesAutoComplete = ({ setSelected }: any) => {
-/* const PlacesAutoComplete = ({ type, name, placeholder, className, setSelected }: Props) => {
-
-
-
-
-
-
-
+export const PlacesAutoComplete = ({
+    setSelected,
+    placeholder,
+    className,
+    id
+}: Props) => {
     const {
         ready,
         value,
@@ -52,29 +34,25 @@ type Props = {
         clearSuggestions,
     } = usePlacesAutocomplete();
 
-    const { isLoaded } = useLoadScript({
-        googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-        libraries: ['places'],
-    });
-    if (!isLoaded) return <div>Loading ...</div>;
-
     // adress to lat and lg
     const handleSelect = async (address: string) => {
+        document.getElementById("departure_time")?.removeAttribute("disabled")
+
         setValue(address, false);
         clearSuggestions();
-
         const results = await getGeocode({ address });
-        const { lat, lng } = await getLatLng(results[0]);
+        const { lat, lng } = getLatLng(results[0]);
         setSelected({ lat, lng });
     };
 
     return (
-        <Combobox onSelect={handleSelect}>
+        <Combobox onSelect={handleSelect} className={`${className}`}>
             <ComboboxInput
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 disabled={!ready}
-                className={`combobox-input ${className}`}
+                className='combobox-input'
+                id={id}
                 placeholder={placeholder}
             />
             <ComboboxPopover>
@@ -91,4 +69,4 @@ type Props = {
             </ComboboxPopover>
         </Combobox>
     );
-}; */
+};

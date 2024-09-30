@@ -1,6 +1,5 @@
 'use client';
 import s from './style.module.css'
-import axios from 'axios';
 import { useEffect, useState, useRef } from 'react';
 import {
   APIProvider,
@@ -10,33 +9,16 @@ import {
   useMapsLibrary,
 } from '@vis.gl/react-google-maps';
 import { MarkerClusterer } from "@googlemaps/markerclusterer";
-
 import type { Marker } from "@googlemaps/markerclusterer";
-import usePlacesAutocomplete, {
-  getGeocode,
-  getLatLng,
-} from 'use-places-autocomplete';
 
-import {
-  Combobox,
-  ComboboxInput,
-  ComboboxPopover,
-  ComboboxList,
-  ComboboxOption,
-} from '@reach/combobox';
-import '@reach/combobox/styles.css';
 import { Libraries, useLoadScript } from '@react-google-maps/api';
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from 'data/defaultCoordinates';
 import { toast } from 'services/sweet-alert';
 import { Loader } from 'components/Loader/Loader';
+
+import { formatWeatherInfo, fetchWeatherAPI } from 'app/weather/Weather'
 import { calculateHoursDifference, duration2color, weatherTag2Color } from 'services/utils';
-
-type LatLng = {
-  lat: number;
-  lng: number;
-};
-
-
+import { LatLng, Point, MarkersProps } from 'types/geo';
 
 type IntroProps = {
   origin: LatLng | undefined;
@@ -45,21 +27,11 @@ type IntroProps = {
   vehicle: string;
 };
 
-type DirectionProps = IntroProps & { setPoints: any };
-
-type PointInfo = {
-  lat: number,
-  lng: number,
-  key: string,
-  time: string,
-  temp: number,
-  imgUrl: string,
-  imgTag: string
-}
+type DirectionProps = IntroProps & { setPoints: (points: Point[] | undefined) => void };
 
 const libraries = ['places']
-
-export function Intro({ origin, destination, departure_time, vehicle }: IntroProps) {
+export function MapDirections({ origin, destination, departure_time, vehicle }: IntroProps) {
+  // Points where to display weather information
   const [points, setPoints] = useState<Point[] | undefined>()
 
   const { isLoaded } = useLoadScript({
@@ -122,6 +94,7 @@ export function Directions({
   const selected = routes[routeIndex];
   const leg = selected?.legs[0];
 
+  // New Origin and Destination
   useEffect(() => {
     if (!routesLibrary || !map || !origin || !destination) return;
     directionsRenderer?.setMap(null);
@@ -136,15 +109,14 @@ export function Directions({
 
   }, [routesLibrary, map, origin, destination, vehicle]);
 
+  // Show route and Calculate points where to fetch WeatherAPI 
   useEffect(() => {
     if (!directionsService || !directionsRenderer) return;
 
-    let duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 1
+    let duration = leg && leg.duration ? Math.round(leg.duration.value / 3600) : 1 // [hours]
     if (duration === 0)
-      duration = 1
-    /* console.log("DURATION", duration)
-    console.log("P-DURATION", prevDuration)
-    console.log(departure_time) */
+      duration = 1 // set min duration possible
+
     if ((prevOrigin && prevOrigin !== "" && prevOrigin === origin
       && prevDestination && prevDestination !== "" && prevDestination === destination
       && prevDuration && Math.abs(prevDuration) === Math.abs(duration)
@@ -159,7 +131,6 @@ export function Directions({
       return
     }
 
-    /* console.log("PREV ORIGIN", prevOrigin) */
     setPrevDuration(duration)
     if (origin) setPrevOrigin(origin)
     if (destination) setPrevDestination(destination)
@@ -175,12 +146,13 @@ export function Directions({
       .then(async (response) => {
         directionsRenderer.setDirections(response);
         setRoutes(response.routes);
+        // compute mid points (along the route)
         const points = await getPointsBetween(
           origin,
           destination,
-          Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2)),
+          Math.floor(Math.sqrt((origin.lat - destination.lat) ** 2 + (origin.lng - destination.lng) ** 2)), // number of points to show
           duration,
-          calculateHoursDifference(departure_time)
+          calculateHoursDifference(departure_time) // calculate time shift (hours) between now and departure time
         )
         setPoints(points)
         console.log("POINTS", points)
@@ -200,10 +172,9 @@ export function Directions({
 
   if (!leg) return null;
 
-  // we have a leg to work with
+  // Show leg information (kilometers, hours and alternative routes)
   return (
     <div className={`${s.navigationDescription}`}>
-      {/* <h2>{selected.summary}</h2> */}
       <div className='d-flex flex-column align-items-center justify-content-center py-1 px-3'>
         <h5 className="d-flex justify-content-center align-items-center">
           {leg.start_address.split(',')[0]}
@@ -238,28 +209,29 @@ export function Directions({
   );
 }
 
-async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: number, base_shift: number): Promise<PointInfo[]> {
-  const points: PointInfo[] = [];
+// Get n points between p1 and p2, taking into account the duration
+// Base shift is used to fetch WeatherAPI properly
+async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: number, base_shift: number): Promise<Point[]> {
+  const points: Point[] = [];
   if (duration === 0)
     return new Promise(resolve => {
       resolve(points)
     });
 
+  // Scale and set minimum value of n
   n = Math.floor(n * .3)
   if (n < 2)
     n = 2
+  // Step of hours between each point (considering the duration and the number of points)
   const hrs_step = Math.round(duration / (n + 1))
   let hrs_offset = -hrs_step
-
-  /* console.log("HRS_STEP", hrs_step)
-  console.log(base_shift) */
 
   const deltaX = p2.lat - p1.lat;
   const deltaY = p2.lng - p1.lng;
 
-  // Calcola i punti intermedi
+  // Compute middle points
   for (let i = 0; i <= n + 1; i++) {
-    const t = i / (n + 1); // Parametro t tra 0 e 1
+    const t = i / (n + 1); // param between [0,1]
     const lat = p1.lat + t * deltaX;
     const lng = p1.lng + t * deltaY;
     const point = { lat, lng }
@@ -273,45 +245,6 @@ async function getPointsBetween(p1: LatLng, p2: LatLng, n: number, duration: num
     resolve(points)
   });
 }
-
-
-const fetchWeatherAPI = async (location: LatLng) => {
-  const url = `https://api.openweathermap.org/data/3.0/onecall?lat=${location.lat}&lon=${location.lng}&appid=${process.env.REACT_APP_OPEN_WEATHER_API_KEY}`;
-  return (await axios.get(url)).data;
-};
-
-
-const formatWeatherInfo = (location: LatLng, info: any, hrs_offset: number): PointInfo => {
-  // use the toLocaleString() method to display the date in different timezones
-  const date = new Date()
-  date.setHours(date.getHours() + hrs_offset);
-
-  if (hrs_offset < 0)
-    hrs_offset = 0
-  else if (hrs_offset >= info.hourly.length)
-    hrs_offset = info.hourly.length - 1
-  const temp = Math.round((info.hourly[hrs_offset].temp - 273.15) * 10) / 10;
-  const weather = info.hourly[hrs_offset].weather[0]
-  const imgUrl = `https://openweathermap.org/img/wn/${weather.icon}.png`
-  const imgTag = weather.main;
-
-  return {
-    lat: location.lat,
-    lng: location.lng, // + .05
-    key: (Math.floor(Math.random() * 10000)) + "",
-    time: date.toLocaleString(navigator.language, {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: info.timezone
-    }),
-    temp,
-    imgUrl,
-    imgTag
-  }
-}
-
-type Point = google.maps.LatLngLiteral & { key: string } & { time: string } & { temp: string } & { imgUrl: string } & { imgTag: string }
-type MarkersProps = { points: Point[] | undefined }
 
 const Markers = ({ points }: MarkersProps) => {
   const map = useMap()
@@ -375,64 +308,7 @@ const Markers = ({ points }: MarkersProps) => {
 
 
 
-type P = {
-  setSelected: any;
-  placeholder: string;
-  className: string;
-  id: string;
-};
 
-// export const PlacesAutoComplete = ({ type, name, placeholder, className, setSelected }: PlacesAutoProps) => {
-export const PlacesAutoComplete = ({
-  setSelected,
-  placeholder,
-  className,
-  id
-}: P) => {
-  const {
-    ready,
-    value,
-    setValue,
-    suggestions: { status, data },
-    clearSuggestions,
-  } = usePlacesAutocomplete();
-
-  // adress to lat and lg
-  const handleSelect = async (address: string) => {
-    document.getElementById("departure_time")?.removeAttribute("disabled")
-
-    setValue(address, false);
-    clearSuggestions();
-    const results = await getGeocode({ address });
-    const { lat, lng } = getLatLng(results[0]);
-    setSelected({ lat, lng });
-  };
-
-  return (
-    <Combobox onSelect={handleSelect} className={`${className}`}>
-      <ComboboxInput
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        disabled={!ready}
-        className='combobox-input'
-        id={id}
-        placeholder={placeholder}
-      />
-      <ComboboxPopover>
-        <ComboboxList>
-          {status === 'OK' &&
-            data.map(({ place_id, description }) => (
-              <ComboboxOption
-                className='combobox-option'
-                key={place_id}
-                value={description}
-              />
-            ))}
-        </ComboboxList>
-      </ComboboxPopover>
-    </Combobox>
-  );
-};
 
 
 const parseTravelMode = (mode: string): google.maps.TravelMode => {

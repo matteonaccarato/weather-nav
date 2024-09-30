@@ -1,12 +1,10 @@
+// Calculate time shift (hours) between now and target time
 export const calculateHoursDifference = (targetDateStr: string): number => {
-    const targetDate = new Date(targetDateStr); // Data fornita
-    const currentDate = new Date(); // Data corrente
-
-    // Differenza in millisecondi
+    const targetDate = new Date(targetDateStr);
+    const currentDate = new Date();
     const differenceInMs = targetDate.getTime() - currentDate.getTime();
 
-    // Converti la differenza da millisecondi a ore
-    const differenceInHours = differenceInMs / (1000 * 60 * 60);
+    const differenceInHours = differenceInMs / (1000 * 60 * 60); // get hours
     return Math.round(differenceInHours);
 }
 

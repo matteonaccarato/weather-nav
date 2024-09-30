@@ -1,17 +1,17 @@
 import { LatLng } from 'types/geo';
 
-// Paris
-export const DEFAULT_ORIGIN_PLACEHOLDER = "Paris, France"
+// Cuneo, Italy
+export const DEFAULT_ORIGIN_PLACEHOLDER = "Cuneo, Province of Cuneo, Italy"
 export const DEFAULT_ORIGIN: LatLng = {
-    lat: 50.0647,
-    lng: 2.3514
+    lat: 44.3844766,
+    lng: 7.5426711
 }
 
-// Vienna
-export const DEFAULT_DESTINATION_PLACEHOLDER = "Vienna, Austria"
+// Leuven, Belgium
+export const DEFAULT_DESTINATION_PLACEHOLDER = "Leuven, Belgium"
 export const DEFAULT_DESTINATION: LatLng = {
-    lat: 48.2081,
-    lng: 16.3713
+    lat: 50.8804063,
+    lng: 4.7100338
 }
 
 // Middle Europe

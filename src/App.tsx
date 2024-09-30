@@ -1,6 +1,4 @@
-/* import { Intro } from './app/intro/Intro' */
-/* import { Intro } from './app/markers/Markers' */
-import { Intro } from './app/directions/Directions';
+import { MapDirections } from './app/directions/Directions';
 import { Form } from './components/Form/Form';
 import { Header } from './components/Header/Header';
 import { Description } from './components/Description/Description'
@@ -12,9 +10,8 @@ import { Footer } from 'components/Footer/Footer';
 export function App() {
   const [origin, setOrigin] = useState<LatLng | undefined>(undefined)
   const [destination, setDestination] = useState<LatLng | undefined>(undefined)
-  const [departureTime, setDepartureTime] = useState<string>(new Date().toISOString())//.slice(0, 16))
+  const [departureTime, setDepartureTime] = useState<string>(new Date().toISOString())
   const [vehicle, setVehicle] = useState<string>("DRIVING")
-  /* const [vehicle, setVehicle] = useState<google.maps.TravelMode>(google.maps.TravelMode.DRIVING) */
 
   return (
     <div className='App'>
@@ -43,7 +40,7 @@ export function App() {
           currOrigin={origin}
           currDestination={destination} />
 
-        <Intro
+        <MapDirections
           origin={origin}
           destination={destination}
           departure_time={departureTime}

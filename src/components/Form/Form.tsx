@@ -1,18 +1,18 @@
 import s from './style.module.css'
 import { Input } from 'components/Input/Input';
 import { useState } from 'react';
-import { PlacesAutoComplete } from 'app/directions/Directions';
+import { PlacesAutoComplete } from 'components/PlacesAutoComplete/PlacesAutoComplete';
 import { LatLng } from 'use-places-autocomplete';
 
 import { useLoadScript, Libraries } from '@react-google-maps/api';
 import { toast } from 'services/sweet-alert';
 
 type Props = {
-  onLoadExample: any,
-  setOrigin: any,
-  setDestination: any,
-  setDepartureTime: any,
-  setVehicle: any,
+  onLoadExample: () => void,
+  setOrigin: (origin: LatLng | undefined) => void,
+  setDestination: (destination: LatLng | undefined) => void,
+  setDepartureTime: (departureTime: string) => void,
+  setVehicle: (vehicle: string) => void,
   currOrigin: LatLng | undefined,
   currDestination: LatLng | undefined
 }
@@ -22,7 +22,7 @@ const libraries = ['places']
 export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTime, setVehicle, currOrigin, currDestination }: Props) {
   const now = new Date();
   const offset = now.getTimezoneOffset() * 60000;
-  const [_departureTime, _setDepartureTime] = useState<string>(new Date(now.getTime() - offset).toISOString()) // .slice(0, 16))
+  const [_departureTime, _setDepartureTime] = useState<string>(new Date(now.getTime() - offset).toISOString())
 
   const setDepTime = (time: string) => {
     _setDepartureTime(time)
@@ -83,16 +83,12 @@ export function Form({ onLoadExample, setOrigin, setDestination, setDepartureTim
       type='datetime-local'
       className={`col-12 col-sm-2 ${s.departure_time}`}
       value={_departureTime.slice(0, 16)}
-      onChange={(e: any) => setDepTime(e.target.value)} />
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDepTime(e.target.value)} />
 
     <select className="col-3 col-sm-1 dropdown-vehicle" defaultValue={google.maps.TravelMode.DRIVING} onChange={e => {
       setVehicle(e.target.value)
       toast("success", "Vehicle updated :)")
     }}>
-      {/* <option>Vehicle</option> */}
-      {/* <option value="DRIVING">🚗</option>
-      <option value="BICYCLING">🚲</option> */}
-      {/* <option value="WALKING">🚶‍♂️</option> */}
       <option value={google.maps.TravelMode.DRIVING}>🚗</option>
       <option value={google.maps.TravelMode.BICYCLING}>🚲</option>
     </select>

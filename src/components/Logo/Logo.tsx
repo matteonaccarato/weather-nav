@@ -4,7 +4,7 @@ type Props = {
     image: string,
     title: string,
     subtitle: string,
-    onClick: any
+    onClick: (event: React.MouseEvent<HTMLDivElement>) => void
 }
 export function Logo({ image, title, subtitle, onClick }: Props) {
     return (

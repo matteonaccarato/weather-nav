@@ -9,7 +9,7 @@ type Props = {
     type?: string,
     className?: string,
     value?: string,
-    onChange?: any
+    onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 
